@@ -28,6 +28,7 @@ Results are written to Results folder. In particular figures containing the metr
 * d2d_releases_reader - combining the DAL and preprocess procedures.
 * dataset_dates - datasets metadata for all versions of DrugBank used in our research.
 * utils - utilities used in the code.
+* Results\embeddings\* - precomputed drug embedding.
 
 ## Install:
 
