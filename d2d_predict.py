@@ -122,8 +122,8 @@ class drugs_xgboost_predictor():
     feature_names = [ 'Average common neighbors',
                       'Average Jaccard coefficient',
                       #'Shortest Path Length', 'Preferential Attachment',
-                     'Adamic Adar',
-                     'Katz'
+                     'Adamic/Adar',
+                     '$Katz_b$'
                       ]  # ,
     def __init__(self,m,test_tuples,colsample_bytree=1,n_estimators=100,random_state=1234,subsample=1,learning_rate=0.01,max_depth=3):
         #super().__init__()
@@ -291,7 +291,7 @@ class drugs_single_feature_predictor():
 
 
 class drugs_nn_predictor():
-    def __init__(self, m, test_tuples, validation_tuples=None, validation_target=None,name='AMF',propagation_factor=None, mul_emb_size = 128, dropout=0.3, epochs=5, batch_size=256, learning_rate=0.01):
+    def __init__(self, m, test_tuples, validation_tuples=None, validation_target=None,name='AMF',propagation_factor=None, mul_emb_size = 128, dropout=0.3, epochs=5, batch_size=256, learning_rate=0.01,neg_per_pos_sample=1.0):
         #sub models: [similarity, GMF, MLP]
         # import tensorflow as tf
         # tf.set_random_seed(1)
@@ -320,12 +320,14 @@ class drugs_nn_predictor():
         #self.features_dict = features_creator.get_normalized_feature_dict()
         #self.num_features = len(self.features_dict[(0, 0)])
         self.num_of_drugs = self.m.shape[0]
+        self.neg_per_pos_sample=neg_per_pos_sample
+
         #features_file_path = r'pickles\filename.pickle'#TODO: create this file using code
         #with open(features_file_path, 'rb') as handle:
         #self.features_dict = pickle.load(handle)
         #self.num_feautres = len(next(iter(self.features_dict.items()))[1])
 
-    def get_sample_train_validation(self, train_pos, train_neg, validation_pos, validation_neg, neg_to_pos_ratio=1):
+    def get_sample_train_validation(self, train_pos, train_neg, validation_pos, validation_neg, neg_to_pos_ratio=1.0):
         if neg_to_pos_ratio is None:
             train, validation = train_pos + train_neg, validation_pos + validation_neg
         else:
@@ -340,7 +342,7 @@ class drugs_nn_predictor():
             train = list(train_pos)
             # validation = list(validation_pos)
             if len(train_pos) * neg_to_pos_ratio < len(train_neg):
-                train += random.sample(train_neg, len(train_pos) * neg_to_pos_ratio)
+                train += random.sample(train_neg, int(len(train_pos) * neg_to_pos_ratio))
             else:
                 print('not sampling due to increased number of positive samples')
                 train += train_neg
@@ -431,7 +433,7 @@ class drugs_nn_predictor():
             # create sample instances#
             train_tuples_sample, validation_tuples_sample = self.get_sample_train_validation(train_pos, train_neg,
                                                                                              validation_pos, validation_neg,
-                                                                                             neg_to_pos_ratio=10) #9-10-11 is the best
+                                                                                             neg_to_pos_ratio=self.neg_per_pos_sample)
             train_features, train_target_att = self.get_instances(train_tuples_sample,self.m_train)
             if self.validation_features==None:
                 self.validation_features, self.validation_target_att = self.get_instances(validation_tuples_sample,self.m,)
@@ -502,7 +504,7 @@ class drugs_nn_predictor():
                         other_nodes_w += curr_weight *w[0][v2]
                     #w1 = len(G[v1])
                     #w2 /= len(G[v1])
-                    new_node_emb = new_node_emb*orig_ratio + (1-orig_ratio)*other_nodes_w/total_weights
+                    new_node_emb = new_node_emb*orig_ratio + (1-orig_ratio)*other_nodes_w/total_weights #   here the orig_ratio is 1-alpha from the paper.
                     #new_w.append(new_node_emb*orig_ratio + (1-orig_ratio)*other_nodes_w/total_weights)
                 else:
                     new_node_emb = np.array(w[0][v1])

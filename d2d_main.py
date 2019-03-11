@@ -13,8 +13,7 @@ import pandas as pd
 import os
 from keras import backend as K
 import tensorflow as tf
-#seed = 8
-seed = 123456
+seed = 0
 os.environ['PYTHONHASHSEED'] = str(seed)
 random.seed(seed)
 np.random.seed(seed)
@@ -117,7 +116,7 @@ elif experiment_type == 'retrospecrive_validation':
     evaluation_method ='Retrospective'
     new_version='5.0.0'
     old_version = "4.1"
-    models = ['AMF','AMFP', 'Vilar','xgb','features']
+    models = ['AMFP']
 elif experiment_type == 'ddi_structural_compare':
     evaluation_method ='Retrospective'
     new_version="5.1.1"
@@ -145,7 +144,7 @@ else:
 
 
 if evaluation_method == 'Retrospective':
-    amfp_params = {'mul_emb_size' : 256, 'dropout':0.3, 'epochs':5, 'batch_size':512, 'learning_rate':0.01,'propagation_factor':0.3}
+    amfp_params = {'mul_emb_size' : 512, 'dropout':0.4, 'epochs':6, 'batch_size':1024, 'learning_rate':0.01,'propagation_factor':0.4}
     amf_params = {'mul_emb_size' : 64, 'dropout':0.5, 'epochs':5, 'batch_size':512, 'learning_rate':0.01,'propagation_factor':None}
     xgboost_params = {'colsample_bytree':0.3, 'n_estimators':60, 'subsample':0.8, 'learning_rate':0.01, 'max_depth':5}
 
@@ -161,7 +160,7 @@ else:
 if 'AMF' in models:
     validaition_instance_features=None
     target_att=None
-    if old_version=='4.1' and new_version == '5.0.0': #for validation i use the answers to print the results using varying propagation factor
+    if experiment_type == 'retrospecrive_validation': #for validation i use the answers to print the results using varying propagation factor
         validaition_instance_features = []
         validaition_instance_features.append(np.array([t[0] for t in test_tuples]))
         validaition_instance_features.append(np.array([t[1] for t in test_tuples]))
@@ -174,7 +173,7 @@ if 'AMF' in models:
 if 'AMFP' in models:
     validaition_instance_features=None
     target_att=None
-    if old_version=='4.1' and new_version == '5.0.0': #for validation i use the answers to print the results using varying propagation factor
+    if experiment_type == 'retrospecrive_validation': #for validation i use the answers to print the results using varying propagation factor
         validaition_instance_features = []
         validaition_instance_features.append(np.array([t[0] for t in test_tuples]))
         validaition_instance_features.append(np.array([t[1] for t in test_tuples]))
@@ -182,7 +181,6 @@ if 'AMFP' in models:
     nn = drugs_nn_predictor(m_train,test_tuples,validation_tuples=validaition_instance_features,validation_target=target_att, name='AMFP', **amfp_params)
     nn.predictions_pickle_file_name=nn_p_file
     predictors.append(nn)
-
 
 #Tanimoto
 if 'Vilar' in models:
@@ -200,7 +198,7 @@ if 'xgb' in models:
 if 'features' in models:
     features_creator = graph_features_creator(m_train)
     features_dict = features_creator.get_normalized_feature_dict()
-    for f_name in ['Average common neighbors', 'Average Jaccard coefficient','Adamic Adar','Katz']:
+    for f_name in ['Average common neighbors', 'Average Jaccard coefficient','Adamic/Adar','$Katz_b$']:
         predictors.append(drugs_single_feature_predictor(m_train,test_tuples,f_name,features_dict))
 
 for predictor in predictors:

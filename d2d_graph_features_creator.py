@@ -11,7 +11,7 @@ import random
 from utils import unpickle_object, pickle_object
 
 class graph_features_creator():
-    def __init__(self,mat,maxl = 2, beta = 0.1,G=None):
+    def __init__(self,mat,maxl = 3, beta = 0.1,G=None):
         self.file_name_pickle = self.get_pickle_file_name(mat)
         if G==None:
             self.G = nx.from_numpy_matrix(mat)
@@ -24,7 +24,7 @@ class graph_features_creator():
         value_to_hash = len(mat.nonzero()[0]) + mat.shape[0] + mat.shape[1] #raises the probablity for collisions, but should do the job for a small number of elements
         return os.path.join('pickles',"graph_features_" + str(hash(value_to_hash)) + ".pickle")
 
-    feature_names = ['Jaccard coefficient', 'Average common neighbors','Shortest Path Length', 'Average Jaccard coefficient', 'Cosine', 'Community','Adamic Adar','Katz','Preferential Attachment']
+    feature_names = ['Jaccard coefficient', 'Average common neighbors','Shortest Path Length', 'Average Jaccard coefficient', 'Cosine', 'Community','Adamic/Adar','$Katz_b$','Preferential Attachment']
 
     def create_graph_features(self):
         # jaccard
@@ -155,24 +155,24 @@ class graph_features_creator():
 
     # Implementation of Katz's algorithm
     def katz(self):
-        # predictions = []
-        # Graph = {}
-        # for n in self.G.nodes:
-        #     Graph[n] = lil_matrix((1, self.G.number_of_nodes()), dtype=np.uint16)
-        #     for node in list(self.G[n]):
-        #         Graph[n][0,node]=1
-        #     Graph[n]=Graph[n].tocsr()
-        # print(f'working on {len(self.edges)} edges')
-        # self.Graph = Graph
-        # self.katz_scores=predictions
-        # p = mp.Pool(4)
-        # p.map(self.katz_similarity, self.edges)  # range(0,1000) if you want to replicate your example
-        # p.close()
-        # p.join()
-        #return self.katz_scores
-        arrays = []
-        for i in range(10):
-            part = unpickle_object(f'kats_scores_final_{i}.pickle')
-            arrays.append(part)
-        katz_scores = [(int(x[0]), int(x[1]), x[2]) for x in numpy.concatenate(arrays)]
-        return katz_scores
+        predictions = []
+        Graph = {}
+        for n in self.G.nodes:
+            Graph[n] = lil_matrix((1, self.G.number_of_nodes()), dtype=np.uint16)
+            for node in list(self.G[n]):
+                Graph[n][0,node]=1
+            Graph[n]=Graph[n].tocsr()
+        print(f'working on {len(self.edges)} edges')
+        self.Graph = Graph
+        self.katz_scores=predictions
+        p = mp.Pool(4)
+        p.map(self.katz_similarity, self.edges)  # range(0,1000) if you want to replicate your example
+        p.close()
+        p.join()
+        return self.katz_scores
+        # arrays = []
+        # for i in range(10):
+        #     part = unpickle_object(f'kats_scores_final_{i}.pickle')
+        #     arrays.append(part)
+        # katz_scores = [(int(x[0]), int(x[1]), x[2]) for x in numpy.concatenate(arrays)]
+        # return katz_scores
