@@ -228,7 +228,7 @@ class drugs_xgboost_predictor():
             predictions[self.keys[i][0], self.keys[i][1]] = score[1]
             predictions[self.keys[i][1], self.keys[i][0]] = score[1]
         self.predicted_mat = predictions
-        s = set(self.test_tuples)
+        s = set([(x[0],x[1])for x in self.test_tuples])
         predictions = [(i, v) for (v, i) in sorted([(v, i) for (i, v) in np.ndenumerate(predictions)],
                                                    reverse=True)]  # get the cells of matrix in ascending order of cell value
         print(1)
@@ -279,7 +279,7 @@ class drugs_single_feature_predictor():
         #                if t[0] > t[1] and (((t[0], t[1]) in s) or (
         #             (t[1], t[0]) in s))]  # just half of the matrix and predictions larger than 0
         #
-        s = set(self.test_tuples)
+        s = set([(x[0],x[1])for x in self.test_tuples])
         predictions = [(i, v) for (v, i) in sorted([(v, i) for (i, v) in np.ndenumerate(predictions)],
                                                    reverse=True)]  # get the cells of matrix in ascending order of cell value
         print(1)
@@ -626,7 +626,7 @@ class drugs_nn_predictor():
 
         self.predicted_mat = predictions
         print('predicted: ', count)
-        s = set(self.test_tuples)
+        s = set([(x[0],x[1])for x in self.test_tuples])
         predictions = [(i, v) for (v, i) in sorted([(v, i) for (i, v) in np.ndenumerate(predictions)],
                                                    reverse=True)]  # get the cells of matrix in ascending order of cell value
         print(1)
@@ -684,7 +684,7 @@ class drugs_tanimoto_predictor():
     def predict(self):
         self.predictions = self.m3
         self.predicted_mat = self.m3
-        s = set(self.test_tuples)
+        s = set([(x[0],x[1])for x in self.test_tuples])
         predictions = [(i, v) for (v, i) in sorted([(v, i) for (i, v) in np.ndenumerate(self.m3)],
                                                    reverse=True)]  # get the cells of matrix in ascending order of cell value
         print(1)
