@@ -22,8 +22,8 @@ tf.set_random_seed(seed)
 sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
 K.set_session(sess)
 ########################################
-
-
+remove_random=False #remove randomly interaction to miic the CYP interaction removed.
+remove_CYP=False #removed shared CYP enzemes interactions
 outputs = []
 overall_precision = []
 overall_k_precision = []
@@ -92,7 +92,40 @@ def export_predictions(mat,i2d):
     except:
         print('error during export')
 
-experiment_type = 'retrospective' # 'prediting_final_version' 'holdout' 'retrospective' 'ddi_structural_compare' 'retrospecrive_validation'
+def remove_CYP_interactions(i2d, test_tuples, drug_id_to_genname,m_test):
+    cyp_enzs = {'CYP1A2', 'CYP2B6', 'CYP2C8', 'CYP2C9', 'CYP2C19', 'CYP2D6', 'CYP2E1', 'CYP3A4', 'CYP3A5', 'CYP3A7'}
+    removed=0
+    removed_pos=0
+    ans = set()
+    num_interactions = len(test_tuples)
+    for index1,d1 in enumerate(i2d):
+        for index2, d2 in enumerate(i2d):
+            if index1>index2:
+                shared_genes = drug_id_to_genname[d1] & cyp_enzs & drug_id_to_genname[d2]
+                ans = ans | shared_genes
+                t=(index1,index2)
+                if len(shared_genes)>0 and t in test_tuples:
+                    #if not remove_random_mimic_cyp:
+                    test_tuples.remove(t)
+                    removed+=1
+                    if m_test[index1,index2]==1:
+                        removed_pos+=1
+    print('removed with shared enzymes:', removed)
+    print('existing interaction removed:',removed_pos)
+    removed_ratio = removed/num_interactions
+    print('removed ratio =',removed_ratio  )
+    # removed=0
+    # if remove_random:
+    #     for index1, d1 in enumerate(i2d):
+    #         for index2, d2 in enumerate(i2d):
+    #             if index1<index2 and m_train[index1, index2] == 1 and m_train[index2, index1] == 1 and random.random()<removed_ratio :
+    #                 m_train[index1, index2] = 0
+    #                 m_train[index2, index1] = 0
+    #                 removed += 1
+    #     print(remove_random, 'removed with shared enzymes:', removed)
+    print(ans)
+
+experiment_type = 'retrospective_cyp' # 'prediting_final_version' 'holdout' 'retrospective' 'ddi_structural_compare' 'retrospecrive_validation' 'retrospective_cyp' 'retrospective_remove_random'
 
 if experiment_type == 'prediting_final_version':
     evaluation_method ='Retrospective'
@@ -122,15 +155,32 @@ elif experiment_type == 'ddi_structural_compare':
     new_version="5.1.1"
     old_version = new_version
     models = ['AMFP']
+elif experiment_type == 'retrospective_cyp':
+    evaluation_method ='Retrospective (no CYP)'
+    new_version="5.1.1"
+    old_version = "5.0.0"
+    models = ['AMFP','AMF', 'Vilar']
+    remove_CYP=True
+elif experiment_type == 'retrospective_remove_random':
+    evaluation_method = 'Retrospective (remove random)'
+    new_version = "5.1.1"
+    old_version = "5.0.0"
+    models = ['AMFP', 'AMF', 'Vilar']
+    remove_random=True
 else:
     raise Exception('the experiment was not found')
 
 
 #spliting to train\test
-if evaluation_method == 'Retrospective':
-    m_test,m_train,evaluator,test_tuples, i2d,evaluation_type,drug_id_to_name  = create_train_test_split_relese(old_relese = old_version,new_relese=new_version)
+if evaluation_method == 'Retrospective' or evaluation_method =='Retrospective (no CYP)' or evaluation_method=='Retrospective (remove random)':
+    m_test,m_train,evaluator,test_tuples, i2d,evaluation_type,drug_id_to_name,drug_id_to_genname_new = create_train_test_split_relese(old_relese = old_version,new_relese=new_version)
 else:
     m_test,m_train,evaluator,test_tuples, i2d, evaluation_type,drug_id_to_name = create_train_test_split_ratio(new_version,train_ratio,validation_ratio,test_ratio)
+
+test_tuples=set(test_tuples)
+if remove_CYP:
+    remove_CYP_interactions(i2d,test_tuples,drug_id_to_genname_new,m_test)
+
 
 print(f'test size: {len(test_tuples)}')
 number_of_drugs = len(i2d)
@@ -143,7 +193,7 @@ else:
     tanimoto_p_file = os.path.join('results','predictions' + evaluation_method + new_version + "tanimoto_predictions.p")
 
 
-if evaluation_method == 'Retrospective':
+if evaluation_method == 'Retrospective' or evaluation_method =='Retrospective (no CYP)' or evaluation_method=='Retrospective (remove random)':
     amfp_params = {'mul_emb_size' : 512, 'dropout':0.4, 'epochs':6, 'batch_size':1024, 'learning_rate':0.01,'propagation_factor':0.4}
     amf_params = {'mul_emb_size' : 64, 'dropout':0.5, 'epochs':5, 'batch_size':512, 'learning_rate':0.01,'propagation_factor':None}
     xgboost_params = {'colsample_bytree':0.3, 'n_estimators':60, 'subsample':0.8, 'learning_rate':0.01, 'max_depth':5}

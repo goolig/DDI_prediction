@@ -17,6 +17,7 @@ class drug_data_reader():
         self.drug_to_interactions = {}
         self.drug_id_to_name = {}
         self.drug_id_to_groups = {}
+        self.drug_id_to_genname = {}
 
     def read_data_from_file(self):
         print('reading file')
@@ -32,6 +33,7 @@ class drug_data_reader():
         elapsed_time = time.time() - start_time
         ns = '{http://www.drugbank.ca}'
         for i, drug in enumerate(root):
+            genname = []
             assert drug.tag == '{ns}drug'.format(ns=ns)
             drug_p_id = drug.findtext("{ns}drugbank-id[@primary='true']".format(ns=ns))
             assert drug_p_id not in self.all_drugs
@@ -49,6 +51,17 @@ class drug_data_reader():
                     self.drug_to_interactions.setdefault(drug_p_id, set()).add(interaction.findtext('{ns}drugbank-id'.format(ns=ns)))
                     # interaction.findtext('{ns}name'.format(ns=ns))
                     # interaction.findtext('{ns}description'.format(ns=ns))
+                    for t in drug.iter("{ns}target".format(ns=ns)):
+                        for gn in t.iter("{ns}gene-name".format(ns=ns)):
+                            if gn is not None and gn.text is not None:
+                                genname.append(gn.text)
+                    for t in drug.iter("{ns}enzymes".format(ns=ns)):
+                        for gn in t.iter("{ns}gene-name".format(ns=ns)):
+                            if gn is not None and gn.text is not None:
+                                genname.append(gn.text)
+
+                self.drug_id_to_genname[drug_p_id]=set(genname)
+        print(self.drug_id_to_genname)
         print('time to read file:', elapsed_time)
         print('number of drugs read:', len(self.all_drugs))
         print('number of drugs with interactions', len(self.drug_to_interactions))

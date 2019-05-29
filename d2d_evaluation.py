@@ -112,6 +112,9 @@ def validate_intersections(i2d, interactions):
         assert d in interactions
         assert len(interactions[d]) > 0 and d not in interactions[d]
 
+
+
+
 def create_train_test_split_relese(old_relese,new_relese):
     print('reading first file')
     d2d_releases_old = d2d_releases_reader()
@@ -132,13 +135,14 @@ def create_train_test_split_relese(old_relese,new_relese):
     # interscting_i2d = drug_preproc_old.get_interscting_i2d(drug_preproc_new)
     interactions_older, interactions_newer, interscting_i2d = drug_preproc_old.get_intersecting_intersections(
         drug_preproc_new)
+
     # interscting_i2d = sorted(list(set(drug_preproc_old.valid_drugs_array) & set(drug_preproc_new.valid_drugs_array)))
     # interactions_older, interactions_newer = drug_preproc_old.valid_drug_to_interactions, drug_preproc_new.valid_drug_to_interactions
     #print('intersecting drugs:', interscting_i2d)
     print('intersecting drugs len: ', len(interscting_i2d))
 
-    validate_intersections(interscting_i2d, interactions_older)
-    validate_intersections(interscting_i2d, interactions_newer)
+    # validate_intersections(interscting_i2d, interactions_older)
+    # validate_intersections(interscting_i2d, interactions_newer)
     print('creating train matrix')
     m_train = drugs_preproc.create_d2d_sparse_matrix(interscting_i2d, interactions_older)
     print('creating test matrix')
@@ -146,14 +150,14 @@ def create_train_test_split_relese(old_relese,new_relese):
     evaluator = drug_evaluator(interscting_i2d, interactions_newer, interactions_older)
     test_tuples = drug_evaluator.get_nnz_tuples_from_marix(m_train, True)
     evaluation_type = 'release'
-    assert min(sum(np.asarray(m_train)))>0
-    assert min(sum(np.asarray(m_train.T)))>0
-    assert min(sum(np.asarray(m_test)))>0
-    assert min(sum(np.asarray(m_test.T)))>0
+    # assert min(sum(np.asarray(m_train)))>0
+    # assert min(sum(np.asarray(m_train.T)))>0
+    # assert min(sum(np.asarray(m_test)))>0
+    # assert min(sum(np.asarray(m_test.T)))>0
 
 
 
-    return m_test, m_train, evaluator, test_tuples, interscting_i2d,evaluation_type,drug_reader_old.drug_id_to_name
+    return m_test, m_train, evaluator, test_tuples, interscting_i2d,evaluation_type,drug_reader_old.drug_id_to_name,drug_reader_new.drug_id_to_genname
 
 def create_train_test_split_ratio(relese,train_ratio=0.7,validation_ratio=0,test_ratio=0.3):
     assert train_ratio+validation_ratio+test_ratio==1
@@ -382,6 +386,7 @@ class drug_evaluator():
                 class_correct.append(False)
             precision_at_k.append(t/(i+1))
             recall_at_k.append(t/P)
+        print('precision at 100:',str(precision_at_k[100]))
         assert len(test_tuples_set)==0, f'unpredicted interactions, {test_tuples_set}'
         print('precision @ cutoff: %f, recall @ cutoff: %f, cutoff: %d' % (precision_at_k[P-1],recall_at_k[P-1],P))
         return precision_at_k,recall_at_k, class_correct
