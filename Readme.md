@@ -1,6 +1,7 @@
 # Drug-drug interaction detection, AMF & AMFP.
 
-This repository contains code necessary for preprocessing, training and evaluating drug-drug interaction detection systems. In particular AMF and AMFP are implemented here. To read more about this technique and our results read the paper (TBD).
+This repository contains code necessary for preprocessing, training and evaluating drug-drug interaction detection systems. In particular AMF and AMFP are implemented here. 
+More details about the techniques and our results can be found in the paper: https://arxiv.org/abs/1903.04571.
 
 Author: Guy Shtar.
 
@@ -28,6 +29,11 @@ Results are written to Results folder. In particular figures containing the metr
 * d2d_releases_reader - combining the DAL and preprocess procedures.
 * dataset_dates - datasets metadata for all versions of DrugBank used in our research.
 * utils - utilities used in the code.
+* Zhang DDI Prediction - comparision of AMF, AMFP, XGBoost ensemble to the method propsed by Zhang et al [1]. See readme in folder for more details.
+
+[1] Zhang W, Chen Y, Liu F, Luo F, Tian G, Li X. Predicting potential drug-drug interactions by integrating
+chemical, biological, phenotypic and network data. BMC Bioinformatics. 2017;18(1):18.
+doi:10.1186/s12859-016-1415-9.
 
 ## Install:
 
