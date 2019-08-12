@@ -1,7 +1,8 @@
 # Drug-drug interaction detection, AMF & AMFP.
 
 This repository contains code necessary for preprocessing, training and evaluating drug-drug interaction detection systems. In particular AMF and AMFP are implemented here. 
-More details about the techniques and our results can be found in the paper: https://arxiv.org/abs/1903.04571.
+The method was published lately in PLOS One:
+Shtar G, Rokach L, Shapira B (2019) Detecting drug-drug interactions using artificial neural networks and classic graph similarity measures. PLOS ONE 14(8): e0219796. https://doi.org/10.1371/journal.pone.0219796
 
 Author: Guy Shtar.
 
@@ -30,6 +31,8 @@ Results are written to Results folder. In particular figures containing the metr
 * dataset_dates - datasets metadata for all versions of DrugBank used in our research.
 * utils - utilities used in the code.
 * Zhang DDI Prediction - comparision of AMF, AMFP, XGBoost ensemble to the method propsed by Zhang et al [1]. See readme in folder for more details.
+* AMFP_Preds_5.1.4.txt - 1,000 interaction predictions made using DrugBank 5.1.4 and AMFP. Given by confidence level.
+* embeddings_AMFP_Retrospective_5.1.4.csv	- Drug embeddings created using DrugBank 5.1.4 and AMFP.
 
 [1] Zhang W, Chen Y, Liu F, Luo F, Tian G, Li X. Predicting potential drug-drug interactions by integrating
 chemical, biological, phenotypic and network data. BMC Bioinformatics. 2017;18(1):18.
